@@ -7,18 +7,30 @@
  * @return {Object[]}
  */
 
+function addProperties(action, state) {
+  for (const key in action.extraData) {
+    state[key] = action.extraData[key];
+  }
+
+  return state;
+}
+
+function removeProperties(action, state) {
+  for (const key of action.keysToRemove) {
+    delete state[key];
+  }
+
+  return state;
+}
+
 function transformStateWithClones(state, actions) {
   const finalState = [];
   let newState = { ...state };
 
-  for (let i = 0; i < actions.length; i++) {
-    const action1 = actions[i];
-
-    switch (action1.type) {
+  for (const currentAction of actions) {
+    switch (currentAction.type) {
       case 'addProperties':
-        const addedResults = addProperties(action1, newState);
-
-        finalState.push(addedResults);
+        finalState.push(addProperties(currentAction, newState));
         break;
 
       case 'clear':
@@ -26,37 +38,17 @@ function transformStateWithClones(state, actions) {
         break;
 
       case 'removeProperties':
-        const removedResults = removeProperties(action1, newState);
-
-        finalState.push(removedResults);
+        finalState.push(removeProperties(currentAction, newState));
         break;
 
       default:
-        throw new Error('Invalid type');
+        throw new Error(`Invalid action type: ${currentAction.type}`);
     }
 
     newState = { ...finalState[finalState.length - 1] };
   }
 
   return finalState;
-}
-
-function addProperties(action1, newState) {
-  for (const key in action1.extraData) {
-    newState[key] = action1.extraData[key];
-  }
-
-  return newState;
-}
-
-function removeProperties(action1, newState) {
-  for (let j = 0; j < action1.keysToRemove.length; j++) {
-    const removed = action1.keysToRemove[j];
-
-    delete newState[removed];
-  }
-
-  return newState;
 }
 
 module.exports = transformStateWithClones;
